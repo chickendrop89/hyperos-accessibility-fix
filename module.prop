@@ -1,0 +1,7 @@
+id=hyperos-accessibility-fix
+name=HyperOS accessibility fix
+version=1.0
+versionCode=1
+author=chickendrop89
+description=Stop HyperOS from randomly disabling accessibillity services | Click Action to view logs
+updateJson=https://raw.githubusercontent.com/chickendrop89/hyperos-accessibility-fix/main/update.json
