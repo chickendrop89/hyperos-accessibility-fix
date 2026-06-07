@@ -1,17 +1,8 @@
 # hyperos-accessibility-fix
 Stop HyperOS from randomly disabling accessibillity services
 
-## What's happening?
+## What's happening
 On Android, when an accessibility app is force-stopped via `ActivityManager`, the [accessibility permission of the app is stripped](https://cs.android.com/android/platform/superproject/+/android-16.0.0_r4:frameworks/base/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java;drc=7f9ce6b127e5d17d7a2ccef1ccc21db212f60084;l=1050).
-
-And HyperOS is hardcoded to trigger a force-stop (not a kill) on 
-certain events like when the user is entering Ultra Battery Saver (`LockScreenClean`),
-and others:
-
-```log
-I ActivityManager: Force stopping com.urbandroid.lux appid=10415 user=0: LockScreenClean
-D ActivityManager: Force removing proc 8855:com.urbandroid.lux:background/u0a415 (com.urbandroid.lux:background/10415)
-```
 
 ```java
 boolean onPackagesForceStoppedLocked(String[] packages, AccessibilityUserState userState) {
@@ -39,6 +30,15 @@ boolean onPackagesForceStoppedLocked(String[] packages, AccessibilityUserState u
     }
 }
     ...
+```
+
+And HyperOS is hardcoded to trigger a force-stop (not a kill) on 
+certain events like when the user is entering Ultra Battery Saver (`LockScreenClean`),
+and others:
+
+```log
+I ActivityManager: Force stopping com.urbandroid.lux appid=10415 user=0: LockScreenClean
+D ActivityManager: Force removing proc 8855:com.urbandroid.lux:background/u0a415 (com.urbandroid.lux:background/10415)
 ```
 
 ## How it works
