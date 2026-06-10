@@ -91,6 +91,6 @@ So be careful at what you enable
 * Flash it in magisk app, or using command line
 
 ## Requirements
-- HyperOS 1.0+
+- HyperOS 1.0+ (or any A14+ system)
 - KernelSU 0.6.6+
 - Magisk 20.4+
