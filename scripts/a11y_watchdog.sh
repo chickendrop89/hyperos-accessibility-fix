@@ -40,28 +40,29 @@ log() {
     printf "$(date '+%m-%d %H:%M') [watchdog] %s\n" "$1" >> "$LOGFILE"
 }
 
-get_services() { 
+get_services() {
     get_svc_out=$(settings get secure enabled_accessibility_services 2>/dev/null)
 
-    svcs=()
-    sep=""
-
-    if [[ -z "$get_svc_out" || "$get_svc_out" == "null" ]]; 
+    if [[ -z "$get_svc_out" || "$get_svc_out" == "null" ]];
         then return
     fi
 
-    set -A svcs -- "${get_svc_out//:/ }"
-    for s in "${svcs[@]}"; 
+    for svc_str in ${get_svc_out//:/ };
         do
-            if [[ "$s" == */.* ]]; 
-                then s="${s%%/*}/${s%%/*}${s#*/}"
+            if [[ -z "$svc_str" ]];
+                then continue
             fi
 
-            printf '%s%s' "$sep" "$s"
-            sep=":"
+            if [[ "$svc_str" == */.* ]]; 
+                then
+                    package="${svc_str%%/*}"
+                    svc_str="$package/$package${svc_str#*/}"
+            fi
+
+            printf -v out_str '%s%s:' "$out_str" "$svc_str"
     done
 
-    printf '\n'
+    printf '%s\n' "${out_str%?}"
 }
 
 repair_database() {
@@ -69,25 +70,19 @@ repair_database() {
         then return
     fi
 
-    cur_svcs=()
     rep_cur=$(get_services)
-    rep_new=""
+    rep_seen=""
 
-    while read -r rep_svc || [[ -n "$rep_svc" ]]; 
+    rep_new=$( { cat "$WATCHLIST" 2>/dev/null; printf '%s\n' "${rep_cur//:/\n}"; } | while read -r svc_item; 
         do
-            if [[ -n "$rep_svc" ]]; 
-                then rep_new="${rep_new:+$rep_new:}$rep_svc"
+            if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* ]]; 
+                then continue
             fi
-    done < "$WATCHLIST"
-    
-    set -A cur_svcs -- "${rep_cur//:/ }"
-    for cur_svc in "${cur_svcs[@]}"; 
-        do
-            if [[ -n "$cur_svc" && "$rep_new" != *"$cur_svc"* ]];
-                then rep_new="${rep_new:+$rep_new:}$cur_svc"
-            fi
-    done
-    
+
+            printf "%s:" "$svc_item"
+            rep_seen="$rep_seen:$svc_item:"
+    done | sed 's/:$//' )
+
     if [[ "$rep_new" != "$rep_cur" && -n "$rep_new" ]]; 
         then
             log "Wipe detected! Restored '$rep_new'"
@@ -101,12 +96,22 @@ repair_database() {
 
 sync_live_to_watchlist() {
     sync_cur=$(get_services)
-    sync_active=$(printf '%s\n' "${sync_cur//:/$'\n'}" | grep '/')
-    sync_watch=$(grep '/' "$WATCHLIST")
+    sync_active=""
 
-    if [[ $(printf '%s\n' "$sync_active" | sort) != $(printf '%s\n' "$sync_watch" | sort) ]];
+    for svc in ${sync_cur//:/ };
+        do
+            if [[ "$svc" =~ / ]];
+                then printf -v sync_active '%s%s\n' "$sync_active" "$svc"
+            fi
+    done
+
+    if [[ -z "$sync_active" ]];
+        then return
+    fi
+
+    if [[ "$(sort <<< "$sync_active")" != "$(sort "$WATCHLIST" 2>/dev/null)" ]]; 
         then
-            printf '%s\n' "$sync_active" > "$WATCHLIST"
+            printf '%s' "$sync_active" > "$WATCHLIST"
             log "Watchlist synced with manual user changes: '$sync_cur'"
     fi
 }
