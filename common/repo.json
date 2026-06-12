@@ -1,9 +1,15 @@
 {
     "support": "https://github.com/chickendrop89/hyperos-accessibility-fix/issues",
     "license": "GPL-2.0",
+    "root": {
+        "kernelsu": ">= 0.6.6",
+        "magisk": ">= 20.4"
+    },
     "categories": [
         "Tweaks and Hacks",
-        "System"
+        "System",
+        "Misc"
     ],
-    "readme": "https://raw.githubusercontent.com/chickendrop89/hyperos-accessibility-fix/main/README.md"
+    "readme": "https://raw.githubusercontent.com/chickendrop89/hyperos-accessibility-fix/main/README.md",
+    "homepage": "https://github.com/chickendrop89/hyperos-accessibility-fix"
 }
