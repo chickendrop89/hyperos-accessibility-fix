@@ -1,7 +1,7 @@
 #!/system/bin/sh
 # shellcheck shell=ash
 
-#  Stop HyperOS from randomly disabling accessibillity services
+#  Stop HyperOS from randomly disabling accessibility services
 #  Copyright (C) 2026 chickendrop89
 #
 #  This program is free software; you can redistribute it and/or modify

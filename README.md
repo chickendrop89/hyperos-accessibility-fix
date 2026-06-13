@@ -1,5 +1,5 @@
 # hyperos-accessibility-fix
-Stop HyperOS from randomly disabling accessibillity services
+Stop HyperOS from randomly disabling accessibility services
 
 ## What's happening
 On Android, when an accessibility app is force-stopped via `ActivityManager`, the [accessibility permission of the app is stripped](https://cs.android.com/android/platform/superproject/+/android-16.0.0_r4:frameworks/base/services/accessibility/java/com/android/server/accessibility/AccessibilityManagerService.java;drc=7f9ce6b127e5d17d7a2ccef1ccc21db212f60084;l=1050).
