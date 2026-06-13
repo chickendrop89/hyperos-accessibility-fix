@@ -23,7 +23,7 @@ MODULENAME=$(grep '^id=' "$MODPROP" | cut -d'=' -f2)
 VERSION=$(grep '^version=' "$MODPROP" | cut -d'=' -f2)
 
 log() {
-    printf "$(date '+%m-%d %H:%M') [action] %s\n" "$1"
+    printf "[$(date '+%m-%d %H:%M')] [action] %s\n" "$1"
 }
 
 log "$MODULENAME $VERSION"
