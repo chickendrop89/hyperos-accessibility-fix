@@ -2,8 +2,8 @@
     "support": "https://github.com/chickendrop89/hyperos-accessibility-fix/issues",
     "license": "GPL-2.0",
     "root": {
-        "kernelsu": ">= 0.6.6",
-        "magisk": ">= 20.4"
+        "kernelsu": ">= 1.0.2",
+        "magisk": ">= 28.0"
     },
     "categories": [
         "Tweaks and Hacks",
