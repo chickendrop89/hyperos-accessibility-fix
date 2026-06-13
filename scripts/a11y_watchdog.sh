@@ -100,7 +100,7 @@ sync_live_to_watchlist() {
 
     for svc in ${sync_cur//:/ };
         do
-            if [[ "$svc" =~ / ]];
+            if [[ "$svc" == */* ]];
                 then printf -v sync_active '%s%s\n' "$sync_active" "$svc"
             fi
     done
