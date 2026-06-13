@@ -41,6 +41,7 @@ log() {
 }
 
 get_services() {
+    unset out_str
     get_svc_out=$(settings get secure enabled_accessibility_services 2>/dev/null)
 
     if [[ -z "$get_svc_out" || "$get_svc_out" == "null" ]];
@@ -59,7 +60,7 @@ get_services() {
                     svc_str="$package/$package${svc_str#*/}"
             fi
 
-            printf -v out_str '%s%s:' "$out_str" "$svc_str"
+            out_str="${out_str}${svc_str}:"
     done
 
     printf '%s\n' "${out_str%?}"
@@ -73,7 +74,7 @@ repair_database() {
     rep_cur=$(get_services)
     rep_seen=""
 
-    rep_new=$( { cat "$WATCHLIST" 2>/dev/null; printf '%s\n' "${rep_cur//:/\n}"; } | while read -r svc_item; 
+    rep_new=$( { cat "$WATCHLIST" 2>/dev/null; printf '%s\n' "$rep_cur" | tr ':' '\n'; } | while read -r svc_item;
         do
             if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* ]]; 
                 then continue
@@ -96,14 +97,12 @@ repair_database() {
 
 sync_live_to_watchlist() {
     sync_cur=$(get_services)
-    sync_active=""
 
-    for svc in ${sync_cur//:/ };
-        do
-            if [[ "$svc" == */* ]];
-                then printf -v sync_active '%s%s\n' "$sync_active" "$svc"
-            fi
-    done
+    if [[ -z "$sync_cur" ]];
+        then return
+    fi
+
+    sync_active=$(printf '%s\n' "$sync_cur" | tr ':' '\n' | grep '/')
 
     if [[ -z "$sync_active" ]];
         then return
@@ -111,7 +110,7 @@ sync_live_to_watchlist() {
 
     if [[ "$(sort <<< "$sync_active")" != "$(sort "$WATCHLIST" 2>/dev/null)" ]]; 
         then
-            printf '%s' "$sync_active" > "$WATCHLIST"
+            printf '%s\n' "$sync_active" > "$WATCHLIST"
             log "Watchlist synced with manual user changes: '$sync_cur'"
     fi
 }
@@ -153,8 +152,9 @@ while read -r log_line;
                     then continue
                 fi
 
-                if dumpsys window | grep -E "mCurrentFocus|mFocusedApp|mFocusedWindow" | \
-                grep -q "com.android.settings"; 
+                current_activity=$(dumpsys activity activities | grep -E "mCurrentFocus|mFocusedApp")
+
+                if [[ "$current_activity" == *"com.android.settings"* ]];
                     then sync_live_to_watchlist
                     else repair_database
                 fi
