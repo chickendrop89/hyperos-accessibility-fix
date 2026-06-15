@@ -20,8 +20,8 @@ WATCHLIST="$1/a11y_watchlist.txt"
 PIDFILE="/tmp/a11y_watchdog.pid"
 LOGFILE="$2"
 
-PKG_PATTERN=""
-LAST_FORCE_STOP=0
+# This service is managed automatically by HyperOS on some devices
+EXCLUDE_SVC="com.miui.screenshot/com.miui.screenshot.accessibility.ScreenshotAccessibilityService"
 LAST_REPAIR=0
 
 # Write PID to file for monitoring
@@ -50,11 +50,11 @@ get_services() {
 
     for svc_str in ${get_svc_out//:/ };
         do
-            if [[ -z "$svc_str" ]];
+            if [[ -z "$svc_str" || "$svc_str" == "$EXCLUDE_SVC" ]];
                 then continue
             fi
 
-            if [[ "$svc_str" == */.* ]]; 
+            if [[ "$svc_str" == */.* ]];
                 then
                     package="${svc_str%%/*}"
                     svc_str="$package/$package${svc_str#*/}"
@@ -76,7 +76,7 @@ repair_database() {
 
     rep_new=$( { cat "$WATCHLIST" 2>/dev/null; printf '%s\n' "$rep_cur" | tr ':' '\n'; } | while read -r svc_item;
         do
-            if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* ]]; 
+            if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* || "$svc_item" == "$EXCLUDE_SVC" ]];
                 then continue
             fi
 
@@ -84,20 +84,20 @@ repair_database() {
             rep_seen="$rep_seen:$svc_item:"
     done | sed 's/:$//' )
 
-    if [[ "$rep_new" != "$rep_cur" && -n "$rep_new" ]]; 
+    if [[ "$rep_new" != "$rep_cur" && -n "$rep_new" ]];
         then
             log "Wipe detected! Restored '$rep_new'"
 
             settings put secure enabled_accessibility_services "$rep_new"
             settings put secure accessibility_enabled 1
-            
+
             LAST_REPAIR=$SECONDS
     fi
 }
 
 sync_live_to_watchlist() {
     sync_cur=$(get_services)
-
+    
     if [[ -z "$sync_cur" ]];
         then return
     fi
@@ -108,7 +108,7 @@ sync_live_to_watchlist() {
         then return
     fi
 
-    if [[ "$(sort <<< "$sync_active")" != "$(sort "$WATCHLIST" 2>/dev/null)" ]]; 
+    if [[ "$(sort <<< "$sync_active")" != "$(sort "$WATCHLIST" 2>/dev/null)" ]];
         then
             printf '%s\n' "$sync_active" > "$WATCHLIST"
             log "Watchlist synced with manual user changes: '$sync_cur'"
@@ -118,46 +118,16 @@ sync_live_to_watchlist() {
 sync_live_to_watchlist
 log "Initialized watchdog daemon"
 
-while read -r watch_svc || [[ -n "$watch_svc" ]]; 
-    do
-        if [[ -n "$watch_svc" ]]; 
-            then
-                pkg="${watch_svc%%/*}"
-
-                if [[ "$PKG_PATTERN" != *"$pkg"* ]]; 
-                    then PKG_PATTERN="${PKG_PATTERN:+$PKG_PATTERN|}$pkg"
-                fi
-        fi
-done < "$WATCHLIST"
-
-if [[ -z "$PKG_PATTERN" ]];
-    then PKG_PATTERN="a^"
-fi
-
 logcat -b events -b main -b system -T 1 | \
-grep --line-buffered -E "ActivityManager: Force stopping.*($PKG_PATTERN)|accessibility event occurred|Accessibility volume enabled|AccessibilityContentObserver.onChange|ActivityManager: Background started FGS" | \
-while read -r log_line; 
+grep --line-buffered -E "accessibility event occurred|Accessibility volume enabled|AccessibilityContentObserver.onChange|ActivityManager: Background started FGS" | \
+while read -r _; 
     do
-        case "$log_line" in
-            *"ActivityManager: Force stopping"*)
-                if (( SECONDS - LAST_FORCE_STOP > 2 )); 
-                    then
-                        LAST_FORCE_STOP=$SECONDS
-                        sleep 0.5
-                        repair_database
-                fi
-            ;;
-            *)
-                if (( SECONDS - LAST_REPAIR <= 2 )); 
-                    then continue
-                fi
+        if (( SECONDS - LAST_REPAIR <= 2 )); 
+            then continue
+        fi
 
-                current_activity=$(dumpsys activity activities | grep -E "mCurrentFocus|mFocusedApp")
-
-                if [[ "$current_activity" == *"com.android.settings"* ]];
-                    then sync_live_to_watchlist
-                    else repair_database
-                fi
-            ;;
-        esac
+        if dumpsys activity activities | grep -E "mCurrentFocus|mFocusedApp" | grep -q "SubSettings"; 
+            then sync_live_to_watchlist
+            else repair_database
+        fi
 done

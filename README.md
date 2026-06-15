@@ -42,15 +42,22 @@ I ActivityManager: Force stopping com.urbandroid.lux appid=10415 user=0: LockScr
 D ActivityManager: Force removing proc 8855:com.urbandroid.lux:background/u0a415 (com.urbandroid.lux:background/10415)
 ```
 
+Also, on some devices, it looks like this is not only done accidentally by performing a force-stop at a wrong place
+(as observed [here](https://github.com/chickendrop89/hyperos-accessibility-fix/issues/4#issuecomment-4709979297) on the earlier revision of this module),
+there may be some daemon that actively strips the permissions for some reason, but i haven't seen that occur on my device.
+
+In any cases, this script should fix the primary issue.
+
 ## How it works
-This module installs a background script that monitors the `logcat` `event` stream for force stop events (`Force stopping.*($PKG_PATTERN)`, etc) 
+This module installs a background script that monitors the `logcat` stream for accessibility update events 
 with minimal system overhead.
 
 On boot, it checks what accessibility services are enabled, and writes them to `a11y_watchlist.txt`. It also listens for signs of manual 
 configuration changes (done by user in settings) and updates the watchlist automatically.
-
-When a forced stop of a watched service is detected, the script performs a verification of enabled accessibility services against the local 
-`a11y_watchlist.txt`. And when the list doesn't match up, the changes (done by `system_server`) are reverted instantly.
+ 
+When an accessibility update event is detected, the script first checks if the device is in the Settings app (as mentioned above).
+If not, the script performs a verification of enabled accessibility services against the local `a11y_watchlist.txt`.
+And if the list doesn't match up, the changes are reverted instantly.
 
 This script also runs at `OOM` score `-800` to prevent `LMKD` from killing it in the background. And if it still gets killed under memory pressure,
 another (monitor) script (that runs at `-900`) is running in background to restart it (provided it wasn't killed aswell lol)
