@@ -1,3 +1,8 @@
+# 1.0.3
+- Reworked the background script to listen for accessibility state updates instead 
+of force-stop to make it work in all cases
+- Fixed typos in the module
+
 # 1.0.2
 - Fixed derp from previous release that broke everything
 - Bumped minimal magisk/ksu version to the first one to support action.sh
