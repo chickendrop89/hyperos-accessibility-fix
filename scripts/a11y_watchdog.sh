@@ -22,7 +22,6 @@ LOGFILE="$2"
 
 # This service is managed automatically by HyperOS on some devices
 EXCLUDE_SVC="com.miui.screenshot/com.miui.screenshot.accessibility.ScreenshotAccessibilityService"
-LAST_REPAIR=0
 
 # Write PID to file for monitoring
 printf "%d\n" $$ > "$PIDFILE.tmp" && mv -f "$PIDFILE.tmp" "$PIDFILE" || exit 1
@@ -67,9 +66,7 @@ get_services() {
 }
 
 repair_database() {
-    if (( SECONDS - LAST_REPAIR < 2 ));
-        then return
-    fi
+    sleep 0.2
 
     rep_cur=$(get_services)
     rep_seen=""
@@ -90,8 +87,6 @@ repair_database() {
 
             settings put secure enabled_accessibility_services "$rep_new"
             settings put secure accessibility_enabled 1
-
-            LAST_REPAIR=$SECONDS
     fi
 }
 
@@ -122,10 +117,6 @@ logcat -b events -b main -b system -T 1 | \
 grep --line-buffered -E "accessibility event occurred|Accessibility volume enabled|AccessibilityContentObserver.onChange|ActivityManager: Background started FGS" | \
 while read -r _; 
     do
-        if (( SECONDS - LAST_REPAIR <= 2 )); 
-            then continue
-        fi
-
         if dumpsys activity activities | grep -E "mCurrentFocus|mFocusedApp" | grep -q "SubSettings"; 
             then sync_live_to_watchlist
             else repair_database
