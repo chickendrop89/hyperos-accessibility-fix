@@ -33,7 +33,9 @@ fi
 
 log() {
     if (( $(wc -l < "$LOGFILE") > 100 )); 
-        then sed -i '1,50d' "$LOGFILE"
+        then
+            tail -n 50 "$LOGFILE" > "$LOGFILE.tmp" 
+            mv -f "$LOGFILE.tmp" "$LOGFILE"
     fi
 
     printf "$(date '+%m-%d %H:%M') [watchdog] %s\n" "$1" >> "$LOGFILE"
@@ -70,16 +72,32 @@ repair_database() {
 
     rep_cur=$(get_services)
     rep_seen=""
+    rep_new=""
 
-    rep_new=$( { cat "$WATCHLIST" 2>/dev/null; printf '%s\n' "$rep_cur" | tr ':' '\n'; } | while read -r svc_item;
+    if [[ -f "$WATCHLIST" ]]; 
+        then
+            while read -r svc_item; 
+                do
+                    if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* || "$svc_item" == "$EXCLUDE_SVC" ]];
+                        then continue
+                    fi
+
+                    rep_new="${rep_new}${svc_item}:"
+                    rep_seen="$rep_seen:$svc_item:"
+            done < "$WATCHLIST"
+    fi
+
+    for svc_item in ${rep_cur//:/ }; 
         do
             if [[ -z "$svc_item" || "$rep_seen" == *":$svc_item:"* || "$svc_item" == "$EXCLUDE_SVC" ]];
                 then continue
             fi
 
-            printf "%s:" "$svc_item"
+            rep_new="${rep_new}${svc_item}:"
             rep_seen="$rep_seen:$svc_item:"
-    done | sed 's/:$//' )
+    done
+
+    rep_new="${rep_new%?}"
 
     if [[ "$rep_new" != "$rep_cur" && -n "$rep_new" ]];
         then
@@ -92,20 +110,26 @@ repair_database() {
 
 sync_live_to_watchlist() {
     sync_cur=$(get_services)
-    
+    sync_active=""
+
     if [[ -z "$sync_cur" ]];
         then return
     fi
 
-    sync_active=$(printf '%s\n' "$sync_cur" | tr ':' '\n' | grep '/')
+    for item in ${sync_cur//:/ }; 
+        do
+            if [[ "$item" == *"/"* ]]; 
+                then sync_active="${sync_active}${item}\n"
+            fi
+    done
 
     if [[ -z "$sync_active" ]];
         then return
     fi
 
-    if [[ "$(sort <<< "$sync_active")" != "$(sort "$WATCHLIST" 2>/dev/null)" ]];
+    if [[ "$(cat "$WATCHLIST" 2>/dev/null)" != "$(printf "%b" "$sync_active" | sort)" ]];
         then
-            printf '%s\n' "$sync_active" > "$WATCHLIST"
+            printf '%b' "$sync_active" | sort > "$WATCHLIST"
             log "Watchlist synced with manual user changes: '$sync_cur'"
     fi
 }
