@@ -141,7 +141,7 @@ logcat -b events -b main -b system -T 1 | \
 grep --line-buffered -E "accessibility event occurred|Accessibility volume enabled|AccessibilityContentObserver.onChange|ActivityManager: Background started FGS" | \
 while read -r _; 
     do
-        if dumpsys activity activities | grep -E "mCurrentFocus|mFocusedApp" | grep -q "SubSettings"; 
+        if am stack list | grep -qE "visible=true.*SubSettings";
             then sync_live_to_watchlist
             else repair_database
         fi
