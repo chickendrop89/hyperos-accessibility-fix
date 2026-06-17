@@ -42,12 +42,6 @@ I ActivityManager: Force stopping com.urbandroid.lux appid=10415 user=0: LockScr
 D ActivityManager: Force removing proc 8855:com.urbandroid.lux:background/u0a415 (com.urbandroid.lux:background/10415)
 ```
 
-Also, on some devices, it looks like this is not only done accidentally by performing a force-stop at a wrong place
-(as observed [here](https://github.com/chickendrop89/hyperos-accessibility-fix/issues/4#issuecomment-4709979297) on the earlier revision of this module),
-there may be some daemon that actively strips the permissions for some reason, but i haven't seen that occur on my device.
-
-In any cases, this script should fix the primary issue.
-
 ## How it works
 This module installs a background script that monitors the `logcat` stream for accessibility update events 
 with minimal system overhead.
