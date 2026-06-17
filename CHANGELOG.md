@@ -1,3 +1,7 @@
+# 1.0.4
+- Optimized && reworked the background script yet again to reduce the "debouncing" delay
+- Started using "am stack" instead of resource hungry "dumpsys"
+
 # 1.0.3
 - Reworked the background script to listen for accessibility state updates instead 
 of force-stop to make it work in all cases
