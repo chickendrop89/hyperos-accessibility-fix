@@ -1,5 +1,5 @@
 {
-    "support": "https://github.com/chickendrop89/hyperos-accessibility-fix/issues",
+    "support": "https://github.com/chkndrp/hyperos-accessibility-fix/issues",
     "license": "GPL-2.0",
     "root": {
         "kernelsu": ">= 1.0.2",
@@ -10,6 +10,6 @@
         "System",
         "Misc"
     ],
-    "readme": "https://raw.githubusercontent.com/chickendrop89/hyperos-accessibility-fix/main/README.md",
-    "homepage": "https://github.com/chickendrop89/hyperos-accessibility-fix"
+    "readme": "https://raw.githubusercontent.com/chkndrp/hyperos-accessibility-fix/main/README.md",
+    "homepage": "https://github.com/chkndrp/hyperos-accessibility-fix"
 }

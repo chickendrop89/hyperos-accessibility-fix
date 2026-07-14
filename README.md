@@ -88,7 +88,7 @@ $ uptime
 So be careful at what you enable
 
 ## Installation:
-* [Download the module archive here](https://github.com/chickendrop89/hyperos-accessibility-fix/releases/latest/download/hyperos-accessibility-fix.zip)
+* [Download the module archive here](https://github.com/chkndrp/hyperos-accessibility-fix/releases/latest/download/hyperos-accessibility-fix.zip)
 * Flash it in magisk app, or using command line
 
 ## Requirements
