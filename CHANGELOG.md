@@ -1,3 +1,6 @@
+# 1.0.5
+- Changed my username in the module files, and updated old links
+
 # 1.0.4
 - Optimized && reworked the background script yet again to reduce the "debouncing" delay
 - Started using "am stack" instead of resource hungry "dumpsys"

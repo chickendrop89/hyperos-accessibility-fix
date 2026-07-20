@@ -1,7 +1,7 @@
 id=hyperos-accessibility-fix
 name=HyperOS accessibility fix
-version=1.0.4
-versionCode=104
+version=1.0.5
+versionCode=105
 author=chkndrp
 description=Stop HyperOS from randomly disabling accessibility services | Click Action to view logs
 updateJson=https://raw.githubusercontent.com/chkndrp/hyperos-accessibility-fix/main/update.json
